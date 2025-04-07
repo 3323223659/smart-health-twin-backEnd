@@ -39,6 +39,7 @@ public class UserController {
     //手机号、密码登录
     @PostMapping("/login")
     public Result login(@RequestBody UserDTO userDTO) {
+        System.out.println(userDTO);
         return userService.loginByPhone(userDTO);
     }
 
