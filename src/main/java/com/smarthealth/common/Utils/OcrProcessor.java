@@ -33,6 +33,7 @@ public class OcrProcessor {
         // 直接解析传入的 ocrJson（已经是 response.getBody().getData() 的内容）
         JsonNode dataNode = objectMapper.readTree(ocrJson);
         String content = dataNode.get("content").asText();
+        System.out.println(content);
 
         // 使用正则表达式提取字段
         extractField(content, "血压：[\\s]*(\\d+/\\d+\\s*mmHg)", report::setBloodPressure);
@@ -42,6 +43,9 @@ public class OcrProcessor {
         extractField(content, "甘油三脂\\s*\\(?(\\d+\\.\\d+)\\s*mmol/L\\)?", value -> report.setTriglycerides(Double.parseDouble(value)));
         extractField(content, "白细胞\\s*\\(?([\\d.]+/10-9/L)\\)?", report::setWhiteBloodCells);
         extractField(content, "红细胞\\s*\\(?([\\d.]+/10-12/L)\\)?", report::setHemoglobin);
+
+        report.setFullReport(content);
+
         return report;
     }
 

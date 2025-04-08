@@ -121,6 +121,7 @@ public class UserController {
     }
 
 
+
     //识别存储体检报告
     @PostMapping("/healthReport")
     public Result uploadHealthReport(String file){
@@ -128,5 +129,16 @@ public class UserController {
         Long userId = BaseContext.getCurrentId();
         return healthReportService.recognize(file, userId);
     }
+
+
+    //获取体检报告信息
+    @GetMapping("/healthReport")
+    public Result getHealthReport(){
+        Long userId = BaseContext.getCurrentId();
+        return healthReportService.getNewReport(userId);
+    }
+
+
+
 
 }

@@ -4,8 +4,8 @@ import com.aliyun.ocr_api20210707.Client;
 import com.aliyun.ocr_api20210707.models.RecognizeBasicRequest;
 import com.aliyun.ocr_api20210707.models.RecognizeBasicResponse;
 import com.aliyun.tea.TeaException;
-import com.aliyun.teautil.Common;
 import com.aliyun.teautil.models.RuntimeOptions;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smarthealth.common.Utils.OcrProcessor;
 import com.smarthealth.common.result.Result;
@@ -13,10 +13,8 @@ import com.smarthealth.domain.Entity.HealthReport;
 import com.smarthealth.mapper.HealthReportMapper;
 import com.smarthealth.service.HealthReportService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 
 import static com.aliyun.teautil.Common.assertAsString;
 
@@ -43,10 +41,11 @@ public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, Hea
 
                 // 使用 OcrProcessor 处理 OCR 结果并封装到 HealthReport
                 HealthReport report = OcrProcessor.processOcrResult(recognizedText, userId);
+                report.setPhotoPath(file);
                 System.out.println(report);
                 if(save(report))
-                    return Result.ok("上传成功");
-                return Result.error("上传失败");
+                    return Result.ok("上传体检报告成功");
+                return Result.error("上传体检报告失败");
             } else {
                 System.out.println("未识别到文本！");
             }
@@ -69,7 +68,19 @@ public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, Hea
             }
             assertAsString(error.message);
         }
-        return Result.error("上传失败");
+        return Result.error("上传体检报告失败");
+    }
+
+    //获取最新的体检报告
+    public Result getNewReport(Long userId) {
+        HealthReport healthReport = getOne(new LambdaQueryWrapper<HealthReport>()
+                .eq(HealthReport::getUserId, userId)
+                .orderByDesc(HealthReport::getCreateTime)
+                .last("LIMIT 1"));
+        if (healthReport != null) {
+            return Result.ok(healthReport);
+        }
+        return Result.error("暂未发现体检报告记录,请录入");
     }
 
 }

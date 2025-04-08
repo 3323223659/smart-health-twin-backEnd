@@ -49,6 +49,12 @@ public class HealthReport {
     //白细胞
     private String whiteBloodCells;
 
+    //报告图片路径
+    private String photoPath;
+
+    //报告全部信息
+    private String fullReport;
+
     //红细胞
     private String hemoglobin;
 

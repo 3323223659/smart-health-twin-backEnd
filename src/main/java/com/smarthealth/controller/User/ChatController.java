@@ -41,5 +41,4 @@ public class ChatController {
         return Result.ok();
     }
 
-
 }

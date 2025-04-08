@@ -20,4 +20,5 @@ public class AliYunConfig {
         config.endpoint = "ocr-api.cn-hangzhou.aliyuncs.com";
         return new Client(config);
     }
+
 }

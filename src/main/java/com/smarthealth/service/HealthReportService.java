@@ -7,4 +7,7 @@ import com.smarthealth.domain.Entity.HealthReport;
 public interface HealthReportService extends IService<HealthReport> {
     //识别存储体检报告
     Result recognize(String file, Long userId);
+
+    //获取最新体检报告
+    Result getNewReport(Long userId);
 }
