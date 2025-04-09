@@ -1,10 +1,14 @@
 package com.smarthealth.service.Impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.smarthealth.domain.Chat.ChatCompletionRequest;
 import com.smarthealth.domain.Chat.ChatCompletionResponse;
 import com.smarthealth.domain.Chat.ChatMessage;
 import com.smarthealth.domain.Chat.OpenAIClient;
+import com.smarthealth.domain.Entity.HealthAdvice;
 import com.smarthealth.service.ChatService;
+import com.smarthealth.service.HealthAdviceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,6 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +32,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ChatServiceImpl implements ChatService {
+
+    private final HealthAdviceService healthAdviceService;
+
     private final OpenAIClient openAIClient;
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -120,6 +128,47 @@ public class ChatServiceImpl implements ChatService {
         redisTemplate.expire(historyKey, 7, TimeUnit.DAYS);
     }
 
+
+    // 新增体检报告分析方法
+    public String analyzeReport(String reportText,Long userId) throws IOException {
+
+        // 定制提示词，要求大模型分析体检报告并返回结构化结果
+        String prompt = "以下是一段未格式化的体检报告文本，请分析并提取关键信息，返回结构化的 JSON 格式结果，" +
+                "包括主要指标（如血压、血糖等）、异常项及建议，保持回答精炼，200字以内。\n" +
+                "体检报告文本：" + reportText;
+
+        ChatMessage userMsg = new ChatMessage();
+        userMsg.setRole("user");
+        userMsg.setContent(prompt);
+        ArrayList<ChatMessage> list = new ArrayList<>();
+        list.add(userMsg);
+
+        ChatCompletionRequest request = new ChatCompletionRequest();
+        request.setMessages(list);
+
+        String analysisResult = openAIClient.createChatCompletion(request);
+        HealthAdvice healthAdvice = healthAdviceService.getOne(new LambdaQueryWrapper<HealthAdvice>().eq(HealthAdvice::getUserId, userId));
+        if(healthAdvice==null){
+            if(healthAdviceService.save(HealthAdvice.builder()
+                    .userId(userId)
+                    .bodyAdvice(analysisResult)
+                    .createTime(LocalDateTime.now())
+                    .build()))
+                return analysisResult;
+            return null;
+        }
+        if(healthAdviceService.saveOrUpdate(HealthAdvice.builder()
+                .id(healthAdvice.getId())
+                .bodyAdvice(analysisResult)
+                .build())){
+            return analysisResult;
+        }
+        return null;
+    }
+
+
+
+
     // 清空对话历史
     public void clearHistory(String userid) {
         String historyKey = CHAT_HISTORY_KEY_PREFIX +userid;
@@ -138,5 +187,4 @@ public class ChatServiceImpl implements ChatService {
         return history.stream().map(obj -> (ChatMessage) obj)
                 .collect(Collectors.toList());
     }
-
 }

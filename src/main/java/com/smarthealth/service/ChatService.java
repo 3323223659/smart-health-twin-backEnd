@@ -20,4 +20,7 @@ public interface ChatService {
 
     //保存流式输出回复
     void saveStreamResponse(String userId, String aiResponse);
+
+    // 新增体检报告分析方法
+    String analyzeReport(String reportText,Long userId) throws IOException;
 }

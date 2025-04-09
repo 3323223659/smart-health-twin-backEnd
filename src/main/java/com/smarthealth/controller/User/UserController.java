@@ -76,6 +76,7 @@ public class UserController {
     @PostMapping("/info")
     public Result setUserInfo(@RequestBody UserInfo userInfo){
         Long userId = BaseContext.getCurrentId();
+
         userInfo.setUserId(userId);
         userInfo.setCreateTime(LocalDateTime.now());
         userInfo.setUpdatedTime(LocalDateTime.now());
@@ -86,9 +87,11 @@ public class UserController {
                 return Result.ok();
             }
         }
+        if(userInfoService.saveOrUpdate(userInfo)){
+            return Result.ok();
+        }
         return Result.error("出现异常,设置个人信息失败");
     }
-
 
 
     //获取用户信息
@@ -134,6 +137,5 @@ public class UserController {
         Long userId = BaseContext.getCurrentId();
         return healthReportService.getNewReport(userId);
     }
-
 
 }

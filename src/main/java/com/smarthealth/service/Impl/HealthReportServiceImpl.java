@@ -9,12 +9,19 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.smarthealth.common.Utils.OcrProcessor;
 import com.smarthealth.common.result.Result;
+import com.smarthealth.domain.Chat.ChatCompletionRequest;
+import com.smarthealth.domain.Chat.ChatMessage;
 import com.smarthealth.domain.Entity.HealthReport;
 import com.smarthealth.mapper.HealthReportMapper;
 import com.smarthealth.service.HealthReportService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.aliyun.teautil.Common.assertAsString;
 
@@ -24,9 +31,12 @@ import static com.aliyun.teautil.Common.assertAsString;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, HealthReport> implements HealthReportService {
 
     private final Client client;
+
+    private final ChatServiceImpl chatService;
 
     //识别存储体检报告并将建议存到mysql中
     public Result recognize(String file, Long userId) {
@@ -45,12 +55,8 @@ public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, Hea
                 System.out.println(report);
                 if(save(report)){
                     //给出建议保存到数据库中
-
-
-
-
-
-
+                    String fullReport = report.getFullReport();
+                    log.info("体检建议："+chatService.analyzeReport(fullReport, userId));
                     return Result.ok("上传体检报告成功");
                 }
                 return Result.error("上传体检报告失败");
