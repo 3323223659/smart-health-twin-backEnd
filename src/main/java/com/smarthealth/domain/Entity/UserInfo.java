@@ -65,6 +65,11 @@ public class UserInfo {
     private Integer age;
 
     /**
+     * 健康状态
+     */
+    private Integer healthStatus;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

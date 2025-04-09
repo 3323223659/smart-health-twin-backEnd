@@ -50,4 +50,9 @@ public class UserInfoVO {
      * 年龄
      */
     private Integer age;
+
+    /**
+     * 健康状态
+     */
+    private Integer healthStatus;
 }

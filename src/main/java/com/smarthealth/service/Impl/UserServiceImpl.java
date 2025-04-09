@@ -153,7 +153,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     .userName(one.getUsername())
                     .phone(user.getPhone())
                     .reportCount(reportCount)
-                    .status(1)
+                    .status(one.getHealthStatus())
                     .build();
             if(reportCount==0){
                 vo.setExaminationTime(null);
@@ -167,6 +167,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         return Result.ok(new PageResult(resultPage.getTotal(), userInfoQueryVOList));
     }
+
+
+
 
 
     public static String getRandomDigitsFromTimestamp() {
