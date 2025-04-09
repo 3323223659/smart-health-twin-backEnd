@@ -26,4 +26,7 @@ public class UserQueryDTO {
      * 用户类型:0超级管理员,1管理员,2用户,3vip用户
      */
     private Integer role;
+
+    //手机号
+    private String phone;
 }

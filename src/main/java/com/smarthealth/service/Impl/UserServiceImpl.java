@@ -19,6 +19,7 @@ import com.smarthealth.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -89,6 +90,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaQueryWrapper<User> LambdaQueryWrapper = new LambdaQueryWrapper<User>()
                 .eq(userQueryDTO.getRole() != null, User::getRole, userQueryDTO.getRole())
                 .eq(userQueryDTO.getStatus() != null, User::getStatus, userQueryDTO.getStatus())
+                .eq(!StringUtils.isEmpty(userQueryDTO.getPhone()), User::getPhone, userQueryDTO.getPhone())
                 .eq(User::getIsDeleted, 0);
 
         Page<User> resultPage = page(p, LambdaQueryWrapper);
