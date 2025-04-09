@@ -106,7 +106,6 @@ public class UserController {
     }
 
 
-
     //上传 头像/体检报告
     @PostMapping("/file")
     public Result uploadAvatar(MultipartFile file) throws Exception{
@@ -118,7 +117,6 @@ public class UserController {
         String url = AliOssUtil.uploadFile(filename, file.getInputStream());
         return Result.ok(url);
     }
-
 
 
     //识别存储体检报告
@@ -136,8 +134,5 @@ public class UserController {
         Long userId = BaseContext.getCurrentId();
         return healthReportService.getNewReport(userId);
     }
-
-
-
 
 }

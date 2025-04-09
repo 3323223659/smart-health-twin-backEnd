@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +50,10 @@ public class ChatServiceImpl implements ChatService {
 
         // 获取或初始化会话历史
         List<ChatMessage> conversationHistory = getConversationHistory(historyKey);
+        conversationHistory.forEach(chatMessage ->
+                System.out.println("Role: " + chatMessage.getRole() +
+                        ", Content: " + chatMessage.getContent())
+        );
         if (conversationHistory.isEmpty()) {
             conversationHistory.add(getSystemMessage()); // 首次会话添加系统消息
             redisTemplate.opsForList().rightPush(historyKey,getSystemMessage());
@@ -96,14 +101,8 @@ public class ChatServiceImpl implements ChatService {
         userMsg.setContent(userMessage);
         conversationHistory.add(userMsg);
 
-        ChatCompletionRequest request = new ChatCompletionRequest();
-        request.setMessages(new ArrayList<>(conversationHistory));
-
-        InputStream stream = openAIClient.createChatCompletionStream(request);
-
-        // 注意：流式响应的完整内容需要客户端读取后才能存入 Redis
-        // 这里先返回流，实际应用中可能需要异步存储
-        return stream;
+        // 直接调用新的流式方法
+        return openAIClient.createChatCompletionStream(conversationHistory);
     }
 
 
@@ -117,10 +116,6 @@ public class ChatServiceImpl implements ChatService {
         redisTemplate.opsForList().rightPush(historyKey,aiMsg);
         redisTemplate.expire(historyKey, 7, TimeUnit.DAYS);
     }
-
-
-
-
 
 
     // 清空对话历史

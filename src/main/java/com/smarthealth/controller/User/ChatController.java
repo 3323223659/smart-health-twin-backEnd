@@ -28,17 +28,6 @@ public class ChatController {
 
     private final ChatService chatService;
 
-//    @PostMapping
-//    public Result chat(@RequestBody ChatDTO chatDTO, @RequestParam String userId) {
-//        try {
-//            String response = chatService.chat(userId, chatDTO.getMessage());
-//            return Result.ok(response);
-//        } catch (Exception e) {
-//            return Result.error("错误:" + e.getMessage());
-//        }
-//    }
-
-
     //聊天
     @PostMapping
     public Result chat(@RequestBody ChatDTO chatDTO) {

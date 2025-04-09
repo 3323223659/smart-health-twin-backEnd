@@ -9,7 +9,13 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -100,32 +106,33 @@ public class OpenAIClient {
 
 
     // 流式输出方法
-    public InputStream createChatCompletionStream(ChatCompletionRequest request) throws IOException {
-        request.setModel(model);
-
-        String requestBody = objectMapper.writeValueAsString(request);
-        System.out.println("createChatCompletionStream - Request Body: " + requestBody);
+    // 修改后的流式输出方法
+    public InputStream createChatCompletionStream(List<ChatMessage> messages) throws IOException {
+        // 构建DashScope请求体
+        DashScopeRequest request = new DashScopeRequest();
+        DashScopeRequest.Input input = new DashScopeRequest.Input();
+        input.setMessages(messages);
+        request.setInput(input);
+        request.setParameters(new DashScopeRequest.Parameters());
 
         RequestBody body = RequestBody.create(
                 objectMapper.writeValueAsString(request),
                 MediaType.get("application/json; charset=utf-8"));
 
+        // 使用DashScope流式API的正确URL
         Request httpRequest = new Request.Builder()
-                .url(baseUrl + "/chat/completions")
+                .url("https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation")
                 .header("Authorization", "Bearer " + apiKey)
                 .header("X-DashScope-SSE", "enable") // 启用流式输出
-                .header("Accept", "text/event-stream") // 指定流式响应格式
+                .header("Content-Type", "application/json")
                 .post(body)
                 .build();
 
         Response response = okHttpClient.newCall(httpRequest).execute();
         if (!response.isSuccessful()) {
-            String errorBody = response.body() != null ? response.body().string() : "No response body";
-            System.err.println("DashScope API Error Response: " + errorBody);
-            throw new IOException("API调用失败，状态码: " + response.code() + ", 响应: " + errorBody);
+            throw new IOException("API调用失败，状态码: " + response.code());
         }
-        System.out.println("createChatCompletionStream - Response received, status: " + response.code());
-        return response.body().byteStream();
+        return response.body().byteStream(); // 返回流
     }
 
 
