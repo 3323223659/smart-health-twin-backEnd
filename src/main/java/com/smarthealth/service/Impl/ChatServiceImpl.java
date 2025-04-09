@@ -28,21 +28,9 @@ public class ChatServiceImpl implements ChatService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    // 存储对话历史,后期改进将数据存储到Redis中或者Mysql）
-    private final List<ChatMessage> conversationHistory = new ArrayList<>();
-
     // Redis key 前缀
     private static final String CHAT_HISTORY_KEY_PREFIX = "chat:history:";
 
-    // 初始化时设置AI身份，Bean实例化完成后执行
-    @PostConstruct
-    public void init() {
-        ChatMessage systemMessage = new ChatMessage();
-        systemMessage.setRole("system");
-        systemMessage.setContent("你是一个由air实验室开发的智慧医疗助手，名字叫做小A，你可以为我提供专业的医疗健康咨询、疾病就诊建议、用药指导以及" +
-                "健康管理方案等帮助，请保持回答精炼，控制在200字以内");
-        conversationHistory.add(systemMessage);
-    }
 
     // 初始化系统消息，首次创建用户会话时添加
     private ChatMessage getSystemMessage() {
@@ -55,10 +43,16 @@ public class ChatServiceImpl implements ChatService {
     }
 
 
-
     public String chat(String userMessage , String userid) throws IOException {
 
         String historyKey =CHAT_HISTORY_KEY_PREFIX + userid;
+
+        // 获取或初始化会话历史
+        List<ChatMessage> conversationHistory = getConversationHistory(historyKey);
+        if (conversationHistory.isEmpty()) {
+            conversationHistory.add(getSystemMessage()); // 首次会话添加系统消息
+            redisTemplate.opsForList().rightPush(historyKey,getSystemMessage());
+        }
 
         // 添加用户消息到历史
         ChatMessage userMsg = new ChatMessage();
@@ -75,21 +69,76 @@ public class ChatServiceImpl implements ChatService {
         // 调用阿里云API，获取AI回复
         String aiResponse = openAIClient.createChatCompletion(request);
 
-        // 添加AI回复到历史
+        // 7. 直接存储AI回复到Redis(仅新增部分)
         ChatMessage aiMsg = new ChatMessage();
         aiMsg.setRole("assistant");
         aiMsg.setContent(aiResponse);
-        conversationHistory.add(aiMsg);
+        redisTemplate.opsForList().rightPush(historyKey, userMsg);
+        redisTemplate.opsForList().rightPush(historyKey, aiMsg);
+        redisTemplate.expire(historyKey, 7, TimeUnit.DAYS);//设置过期时间，7天
 
         return aiResponse;
     }
 
 
-    // 清空对话历史
-    public void clearHistory() {
-        // 保留system消息
-        ChatMessage systemMessage = conversationHistory.get(0);
-        conversationHistory.clear();
-        conversationHistory.add(systemMessage);
+    // 新增流式输出方法
+    public InputStream chatStream(String userId, String userMessage) throws IOException {
+        String historyKey = CHAT_HISTORY_KEY_PREFIX + userId;
+        System.out.println("Chat method - User ID: " + userId + ", Message: " + userMessage);
+        List<ChatMessage> conversationHistory = getConversationHistory(historyKey);
+        System.out.println("Conversation history size: " + conversationHistory.size());
+        if (conversationHistory.isEmpty()) {
+            conversationHistory.add(getSystemMessage());
+        }
+
+        ChatMessage userMsg = new ChatMessage();
+        userMsg.setRole("user");
+        userMsg.setContent(userMessage);
+        conversationHistory.add(userMsg);
+
+        ChatCompletionRequest request = new ChatCompletionRequest();
+        request.setMessages(new ArrayList<>(conversationHistory));
+
+        InputStream stream = openAIClient.createChatCompletionStream(request);
+
+        // 注意：流式响应的完整内容需要客户端读取后才能存入 Redis
+        // 这里先返回流，实际应用中可能需要异步存储
+        return stream;
     }
+
+
+
+    //将流式输出的结果保存到redis
+    public void saveStreamResponse(String userId, String aiResponse) {
+        String historyKey = CHAT_HISTORY_KEY_PREFIX + userId;
+        ChatMessage aiMsg = new ChatMessage();
+        aiMsg.setRole("assistant");
+        aiMsg.setContent(aiResponse);
+        redisTemplate.opsForList().rightPush(historyKey,aiMsg);
+        redisTemplate.expire(historyKey, 7, TimeUnit.DAYS);
+    }
+
+
+
+
+
+
+    // 清空对话历史
+    public void clearHistory(String userid) {
+        String historyKey = CHAT_HISTORY_KEY_PREFIX +userid;
+        redisTemplate.delete(historyKey);
+    }
+
+    // 从 Redis 获取会话历史
+    private List<ChatMessage> getConversationHistory(String historyKey) {
+        //全部的会话历史
+        List<Object> history = redisTemplate.opsForList().range(historyKey, 0, -1);
+        if (history == null || history.isEmpty()) {
+            return new ArrayList<>();
+        }
+        //把每一个对象强转为对应对象
+        return history.stream().map(obj -> (ChatMessage) obj)
+                .collect(Collectors.toList());
+    }
+
 }

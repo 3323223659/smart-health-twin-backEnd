@@ -9,11 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +43,7 @@ public class OpenAIClient {
     }
 
 
+    //普通调用
     public String createChatCompletion(ChatCompletionRequest request) throws IOException {
         request.setModel(model);  // 设置模型
 
@@ -100,4 +96,37 @@ public class OpenAIClient {
             }
         }
     }
+
+
+
+    // 流式输出方法
+    public InputStream createChatCompletionStream(ChatCompletionRequest request) throws IOException {
+        request.setModel(model);
+
+        String requestBody = objectMapper.writeValueAsString(request);
+        System.out.println("createChatCompletionStream - Request Body: " + requestBody);
+
+        RequestBody body = RequestBody.create(
+                objectMapper.writeValueAsString(request),
+                MediaType.get("application/json; charset=utf-8"));
+
+        Request httpRequest = new Request.Builder()
+                .url(baseUrl + "/chat/completions")
+                .header("Authorization", "Bearer " + apiKey)
+                .header("X-DashScope-SSE", "enable") // 启用流式输出
+                .header("Accept", "text/event-stream") // 指定流式响应格式
+                .post(body)
+                .build();
+
+        Response response = okHttpClient.newCall(httpRequest).execute();
+        if (!response.isSuccessful()) {
+            String errorBody = response.body() != null ? response.body().string() : "No response body";
+            System.err.println("DashScope API Error Response: " + errorBody);
+            throw new IOException("API调用失败，状态码: " + response.code() + ", 响应: " + errorBody);
+        }
+        System.out.println("createChatCompletionStream - Response received, status: " + response.code());
+        return response.body().byteStream();
+    }
+
+
 }
