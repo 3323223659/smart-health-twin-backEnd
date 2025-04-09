@@ -12,9 +12,8 @@ import java.util.List;
  */
 public interface ChatService {
 
-    void clearHistory(String userId);
+    void clearHistory();
 
-    String chat(String userId, String userMessage) throws Exception;
+    String chat( String userMessage ,String userid) throws Exception;
 
-    InputStream chatStream(String userId, String userMessage) throws Exception;
 }

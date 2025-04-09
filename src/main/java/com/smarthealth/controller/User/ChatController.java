@@ -35,24 +35,25 @@ public class ChatController {
 //        }
 //    }
 
-    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<InputStreamResource> chatStream(@RequestBody ChatDTO chatDTO) {
-        String userId = BaseContext.getCurrentId().toString();
-        System.out.println(userId);
+
+    //聊天
+    @PostMapping
+    public Result chat(@RequestBody ChatDTO chatDTO) {
+        String id = BaseContext.getCurrentId().toString();
         try {
-            InputStream stream = chatService.chatStream(userId, chatDTO.getMessage());
-            return ResponseEntity.ok()
-                    .contentType(MediaType.TEXT_EVENT_STREAM)
-                    .body(new InputStreamResource(stream));
+            System.out.println(chatDTO.getMessage());
+            String response = chatService.chat(chatDTO.getMessage(),id);
+            return Result.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return Result.error("错误:"+e.getMessage());
         }
     }
 
 
+    //清楚会话记录
     @PostMapping("/clear")
-    public Result clearHistory(@RequestParam String userId) {
-        chatService.clearHistory(userId);
+    public Result clearHistory() {
+        chatService.clearHistory();
         return Result.ok();
     }
 
