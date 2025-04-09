@@ -6,6 +6,7 @@ import com.smarthealth.domain.Chat.ChatMessage;
 import com.smarthealth.domain.Chat.OpenAIClient;
 import com.smarthealth.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatServiceImpl implements ChatService {
     private final OpenAIClient openAIClient;
 
@@ -63,8 +65,7 @@ public class ChatServiceImpl implements ChatService {
         // 构建请求
         ChatCompletionRequest request = new ChatCompletionRequest();
         request.setMessages(new ArrayList<>(conversationHistory));
-        //max_tokens 默认已在 ChatCompletionRequest 中设置为 50，无需额外设置
-        //创建了一个全新的 ArrayList 对象,将 conversationHistory 中的所有元素浅拷贝到新列表中,两个列表相互独立（修改新列表不会影响原列表）
+        //创建了一个全新的 ArrayList 对象,将 conversationHistory 中的所有元素浅拷贝到新列表中,两个列表相互独立(修改新列表不会影响原列表)
 
         // 调用阿里云API，获取AI回复
         String aiResponse = openAIClient.createChatCompletion(request);
@@ -82,13 +83,18 @@ public class ChatServiceImpl implements ChatService {
 
 
 
-
     // 新增流式输出方法
     public InputStream chatStream(String userId, String userMessage) throws IOException {
         String historyKey = CHAT_HISTORY_KEY_PREFIX + userId;
-        System.out.println("Chat method - User ID: " + userId + ", Message: " + userMessage);
+        log.info("Chat method - User ID: " + userId + ", Message: " + userMessage);
+
         List<ChatMessage> conversationHistory = getConversationHistory(historyKey);
-        System.out.println("Conversation history size: " + conversationHistory.size());
+        if (conversationHistory.isEmpty()) {
+            conversationHistory.add(getSystemMessage()); // 首次会话添加系统消息
+            redisTemplate.opsForList().rightPush(historyKey,getSystemMessage());
+        }
+
+        log.info("历史信息多少条: " + conversationHistory.size());
         if (conversationHistory.isEmpty()) {
             conversationHistory.add(getSystemMessage());
         }
@@ -96,12 +102,12 @@ public class ChatServiceImpl implements ChatService {
         ChatMessage userMsg = new ChatMessage();
         userMsg.setRole("user");
         userMsg.setContent(userMessage);
+        redisTemplate.opsForList().rightPush(historyKey,userMsg);
         conversationHistory.add(userMsg);
 
         // 直接调用新的流式方法
         return openAIClient.createChatCompletionStream(conversationHistory);
     }
-
 
 
     //将流式输出的结果保存到redis
@@ -114,12 +120,12 @@ public class ChatServiceImpl implements ChatService {
         redisTemplate.expire(historyKey, 7, TimeUnit.DAYS);
     }
 
-
     // 清空对话历史
     public void clearHistory(String userid) {
         String historyKey = CHAT_HISTORY_KEY_PREFIX +userid;
         redisTemplate.delete(historyKey);
     }
+
 
     // 从 Redis 获取会话历史
     private List<ChatMessage> getConversationHistory(String historyKey) {

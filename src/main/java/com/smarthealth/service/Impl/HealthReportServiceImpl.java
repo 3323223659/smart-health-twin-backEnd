@@ -28,7 +28,7 @@ public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, Hea
 
     private final Client client;
 
-    //识别存储体检报告
+    //识别存储体检报告并将建议存到mysql中
     public Result recognize(String file, Long userId) {
         RecognizeBasicRequest recognizeBasicRequest = new RecognizeBasicRequest()
                 .setUrl(file)
@@ -43,8 +43,16 @@ public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, Hea
                 HealthReport report = OcrProcessor.processOcrResult(recognizedText, userId);
                 report.setPhotoPath(file);
                 System.out.println(report);
-                if(save(report))
+                if(save(report)){
+                    //给出建议保存到数据库中
+
+
+
+
+
+
                     return Result.ok("上传体检报告成功");
+                }
                 return Result.error("上传体检报告失败");
             } else {
                 System.out.println("未识别到文本！");
@@ -82,5 +90,6 @@ public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, Hea
         }
         return Result.error("暂未发现体检报告记录,请录入");
     }
+
 
 }

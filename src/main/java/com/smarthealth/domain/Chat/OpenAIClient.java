@@ -53,7 +53,7 @@ public class OpenAIClient {
     public String createChatCompletion(ChatCompletionRequest request) throws IOException {
         request.setModel(model);  // 设置模型
 
-        // 将 max_tokens 放入 parameters 对象（DashScope HTTP API 要求）
+        // 将 max_tokens 放入 parameters 对象(DashScope HTTP API 要求)
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("model", request.getModel());
         requestMap.put("messages", request.getMessages());
@@ -61,10 +61,9 @@ public class OpenAIClient {
         parameters.put("max_tokens", request.getMax_tokens());
         requestMap.put("parameters", parameters);
 
-
         // 构建请求体
         RequestBody body = RequestBody.create(
-                objectMapper.writeValueAsString(request),
+                objectMapper.writeValueAsString(requestMap),
                 MediaType.get("application/json; charset=utf-8"));
 
         // 构建HTTP请求
@@ -73,6 +72,7 @@ public class OpenAIClient {
                 .header("Authorization", "Bearer " + apiKey)
                 .post(body)
                 .build();
+
 
         // 发送请求并处理响应
         try (Response response = okHttpClient.newCall(httpRequest).execute()) {
@@ -83,7 +83,7 @@ public class OpenAIClient {
             // 获取响应体
             String responseBody = response.body().string();
             // 调试：打印原始响应
-            System.out.println("API Response: " + responseBody);
+            System.out.println("API 响应: " + responseBody);
 
             // 解析JSON，提取 choices[0].message.content
             JsonNode rootNode = objectMapper.readTree(responseBody);
@@ -119,6 +119,8 @@ public class OpenAIClient {
                 objectMapper.writeValueAsString(request),
                 MediaType.get("application/json; charset=utf-8"));
 
+
+
         // 使用DashScope流式API的正确URL
         Request httpRequest = new Request.Builder()
                 .url("https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation")
@@ -128,12 +130,12 @@ public class OpenAIClient {
                 .post(body)
                 .build();
 
+
         Response response = okHttpClient.newCall(httpRequest).execute();
         if (!response.isSuccessful()) {
             throw new IOException("API调用失败，状态码: " + response.code());
         }
         return response.body().byteStream(); // 返回流
     }
-
 
 }

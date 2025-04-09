@@ -125,20 +125,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .like(!StringUtils.isEmpty(userQueryDTO.getPhone()), User::getPhone, userQueryDTO.getPhone());
 
         Page<User> resultPage = page(p, lambdaQueryWrapper);
-
-
         List<UserInfoQueryVO> userInfoQueryVOList = resultPage.getRecords().stream().map(user -> {
             UserInfo one = userInfoService.getOne(new LambdaQueryWrapper<UserInfo>()
                     .eq(UserInfo::getId, user.getId())
                     .eq(UserInfo::getIsDeleted, 0));
             long reportCount = healthReportService.count(new LambdaQueryWrapper<HealthReport>().eq(HealthReport::getUserId, user.getId()));
+
             if(one == null){
                 UserInfoQueryVO vo = UserInfoQueryVO.builder()
-                        .userName("user_"+getRandomDigitsFromTimestamp())
-                        .phone("暂未填写手机号")
+                        .username("user_"+getRandomDigitsFromTimestamp())
                         .reportCount(reportCount)
                         .status(1)
                         .build();
+                vo.setPhone(user.getPhone());
                 if(reportCount==0){
                     vo.setExaminationTime(null);
                     return vo;
@@ -150,7 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
 
             UserInfoQueryVO vo = UserInfoQueryVO.builder()
-                    .userName(one.getUsername())
+                    .username(one.getUsername())
                     .phone(user.getPhone())
                     .reportCount(reportCount)
                     .status(one.getHealthStatus())
@@ -167,7 +166,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         return Result.ok(new PageResult(resultPage.getTotal(), userInfoQueryVOList));
     }
-
 
 
 

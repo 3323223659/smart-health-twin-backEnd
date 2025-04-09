@@ -45,16 +45,15 @@ public class ChatController {
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<InputStreamResource> chatStream(@RequestBody ChatDTO chatDTO) {
         String userId = BaseContext.getCurrentId().toString();
-        System.out.println(chatDTO);
+        log.info("User ID: " + userId);
         try {
-            System.out.println("User ID: " + userId);
             InputStream stream = chatService.chatStream(userId, chatDTO.getMessage());
-            System.out.println("Stream: " + stream);
+            log.info("stream:{}",stream);
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_EVENT_STREAM)
                     .body(new InputStreamResource(stream));
         } catch (Exception e) {
-            System.err.println("Error in chatStream (Controller): " + e.getMessage());
+            log.error("Error occurred while processing the request: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -78,6 +77,5 @@ public class ChatController {
         chatService.clearHistory(userid);
         return Result.ok();
     }
-
 
 }

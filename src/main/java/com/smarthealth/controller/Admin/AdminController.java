@@ -84,4 +84,5 @@ public class AdminController {
          return Result.ok(userInfoService.categoryByAge());
     }
 
+
 }

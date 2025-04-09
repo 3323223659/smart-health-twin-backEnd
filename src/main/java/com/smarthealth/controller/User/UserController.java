@@ -119,7 +119,7 @@ public class UserController {
     }
 
 
-    //识别存储体检报告
+    //识别存储体检报告，并给出建议，然后将建议存到mysql中
     @PostMapping("/healthReport")
     public Result uploadHealthReport(String file){
         System.out.println(file);
@@ -134,5 +134,6 @@ public class UserController {
         Long userId = BaseContext.getCurrentId();
         return healthReportService.getNewReport(userId);
     }
+
 
 }

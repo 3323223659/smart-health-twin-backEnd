@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserInfoQueryVO {
-    private String userName;
+    private String username;
 
     private String phone;
 
