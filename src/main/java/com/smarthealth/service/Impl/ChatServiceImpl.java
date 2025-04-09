@@ -47,7 +47,7 @@ public class ChatServiceImpl implements ChatService {
     private ChatMessage getSystemMessage() {
         ChatMessage systemMessage = new ChatMessage();
         systemMessage.setRole("system");
-        systemMessage.setContent("你是一个由air实验室开发的智慧医疗助手，名字叫做小A，" +
+        systemMessage.setContent("你是一个由air实验室开发的智慧医疗助手，名字叫做小智，" +
                 "你可以为我提供专业的医疗健康咨询、疾病就诊建议、用药指导以及健康管理方案等帮助。" +
                 "请保持回答精炼，控制在200字以内。");
         return systemMessage;

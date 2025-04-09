@@ -9,6 +9,7 @@ import com.smarthealth.domain.DTO.UserDTO;
 import com.smarthealth.domain.Entity.HealthReport;
 import com.smarthealth.domain.Entity.User;
 import com.smarthealth.domain.Entity.UserInfo;
+import com.smarthealth.domain.VO.HealthReportVO;
 import com.smarthealth.domain.VO.UserInfoVO;
 import com.smarthealth.service.HealthReportService;
 import com.smarthealth.service.UserInfoService;
@@ -123,11 +124,11 @@ public class UserController {
 
 
     //识别存储体检报告，并给出建议，然后将建议存到mysql中
-    @PostMapping("/healthReport")
-    public Result uploadHealthReport(String file){
-        System.out.println(file);
+    @PostMapping("/healthReportUpload")
+    public Result uploadHealthReport(@RequestBody HealthReportVO healthReportVO){
+        System.out.println(healthReportVO.getFilePath());
         Long userId = BaseContext.getCurrentId();
-        return healthReportService.recognize(file, userId);
+        return healthReportService.recognize(healthReportVO.getFilePath(), userId);
     }
 
 
