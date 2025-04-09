@@ -16,6 +16,7 @@ public class UserQueryDTO {
 
     //一页所展示数据的数据条数
     private int pageSize;
+
     //手机号
     private String phone;
 
@@ -28,6 +29,4 @@ public class UserQueryDTO {
      * 用户类型:0超级管理员,1管理员,2用户,3vip用户
      */
     private Integer role;
-
-
 }

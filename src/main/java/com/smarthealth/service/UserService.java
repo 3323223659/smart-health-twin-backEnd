@@ -19,4 +19,5 @@ public interface UserService extends IService<User> {
 
     Result userPageQuery(UserQueryDTO userQueryDTO);
 
+    Result getUserInfoList(UserQueryDTO userQueryDTO);
 }

@@ -12,4 +12,5 @@ import java.util.List;
 public class ChatCompletionRequest {
     private String model;
     private List<ChatMessage> messages;
+    private Integer max_tokens = 100; // 控制最大token数，约100字
 }

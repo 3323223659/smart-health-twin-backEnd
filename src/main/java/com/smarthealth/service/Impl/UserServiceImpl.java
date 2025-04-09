@@ -10,11 +10,16 @@ import com.smarthealth.common.result.PageResult;
 import com.smarthealth.common.result.Result;
 import com.smarthealth.domain.DTO.UserDTO;
 import com.smarthealth.domain.DTO.UserQueryDTO;
+import com.smarthealth.domain.Entity.HealthReport;
 import com.smarthealth.domain.Entity.Log;
 import com.smarthealth.domain.Entity.User;
+import com.smarthealth.domain.Entity.UserInfo;
+import com.smarthealth.domain.VO.UserInfoQueryVO;
 import com.smarthealth.domain.VO.UserQueryVO;
 import com.smarthealth.mapper.UserMapper;
+import com.smarthealth.service.HealthReportService;
 import com.smarthealth.service.LogService;
+import com.smarthealth.service.UserInfoService;
 import com.smarthealth.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @Service
 @Slf4j
@@ -36,6 +42,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     private LogService loginLogService;
+
+    @Resource
+    private UserInfoService userInfoService;
+
+    @Resource
+    private HealthReportService healthReportService;
+
 
     /**
      * 根据手机号查找账户
@@ -90,7 +103,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaQueryWrapper<User> LambdaQueryWrapper = new LambdaQueryWrapper<User>()
                 .eq(userQueryDTO.getRole() != null, User::getRole, userQueryDTO.getRole())
                 .eq(userQueryDTO.getStatus() != null, User::getStatus, userQueryDTO.getStatus())
-                .eq(!StringUtils.isEmpty(userQueryDTO.getPhone()), User::getPhone, userQueryDTO.getPhone())
+                .like(!StringUtils.isEmpty(userQueryDTO.getPhone()), User::getPhone, userQueryDTO.getPhone())
                 .eq(User::getIsDeleted, 0);
 
         Page<User> resultPage = page(p, LambdaQueryWrapper);
@@ -100,5 +113,77 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return Result.ok(new PageResult(resultPage.getTotal(), list));
     }
 
+
+    //用户信息管理的分页查询
+    public Result getUserInfoList(UserQueryDTO userQueryDTO) {
+        Page<User> p = Page.of(userQueryDTO.getPage(), userQueryDTO.getPageSize());
+
+        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<User>()
+                .eq(User::getIsDeleted, 0)
+                .eq(userQueryDTO.getRole() != null, User::getRole, userQueryDTO.getRole())
+                .eq(userQueryDTO.getStatus() != null, User::getStatus, userQueryDTO.getStatus())
+                .like(!StringUtils.isEmpty(userQueryDTO.getPhone()), User::getPhone, userQueryDTO.getPhone());
+
+        Page<User> resultPage = page(p, lambdaQueryWrapper);
+
+
+        List<UserInfoQueryVO> userInfoQueryVOList = resultPage.getRecords().stream().map(user -> {
+            UserInfo one = userInfoService.getOne(new LambdaQueryWrapper<UserInfo>()
+                    .eq(UserInfo::getId, user.getId())
+                    .eq(UserInfo::getIsDeleted, 0));
+            long reportCount = healthReportService.count(new LambdaQueryWrapper<HealthReport>().eq(HealthReport::getUserId, user.getId()));
+            if(one == null){
+                UserInfoQueryVO vo = UserInfoQueryVO.builder()
+                        .userName("user_"+getRandomDigitsFromTimestamp())
+                        .phone("暂未填写手机号")
+                        .reportCount(reportCount)
+                        .status(1)
+                        .build();
+                if(reportCount==0){
+                    vo.setExaminationTime(null);
+                    return vo;
+                }
+                LocalDateTime createTime = healthReportService.getOne(new LambdaQueryWrapper<HealthReport>().eq(HealthReport::getUserId, user.getId())
+                        .orderByDesc(HealthReport::getCreateTime).last("LIMIT 1")).getCreateTime();
+                vo.setExaminationTime(createTime);
+                return vo;
+            }
+
+            UserInfoQueryVO vo = UserInfoQueryVO.builder()
+                    .userName(one.getUsername())
+                    .phone(user.getPhone())
+                    .reportCount(reportCount)
+                    .status(1)
+                    .build();
+            if(reportCount==0){
+                vo.setExaminationTime(null);
+                return vo;
+            }
+            LocalDateTime createTime = healthReportService.getOne(new LambdaQueryWrapper<HealthReport>().eq(HealthReport::getUserId, user.getId())
+                    .orderByDesc(HealthReport::getCreateTime).last("LIMIT 1")).getCreateTime();
+            vo.setExaminationTime(createTime);
+            return vo;
+        }).toList();
+
+        return Result.ok(new PageResult(resultPage.getTotal(), userInfoQueryVOList));
+    }
+
+
+    public static String getRandomDigitsFromTimestamp() {
+        // 1. 获取当前时间戳（毫秒）
+        long timestamp = System.currentTimeMillis(); // 示例：1681234567890
+
+        // 2. 转为字符串
+        String timestampStr = String.valueOf(timestamp);
+
+        // 3. 随机选 3 位
+        Random random = new Random();
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < 5; i++) {
+            int randomIndex = random.nextInt(timestampStr.length());
+            result.append(timestampStr.charAt(randomIndex));
+        }
+        return result.toString(); // 示例结果："845"
+    }
 
 }

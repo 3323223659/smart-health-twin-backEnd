@@ -149,7 +149,7 @@
         </dependency>
 
 
-<!--        &lt;!&ndash; HTTP Client for Qwen API &ndash;&gt;-->
+<!--&lt;!&ndash;        &lt;!&ndash; HTTP Client for Qwen API &ndash;&gt;&ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>org.apache.httpcomponents</groupId>-->
 <!--            <artifactId>httpclient</artifactId>-->
@@ -157,11 +157,11 @@
 <!--        </dependency>-->
 
         <!-- OkHttp 用于HTTP请求 -->
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>4.12.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.squareup.okhttp3</groupId>-->
+<!--            <artifactId>okhttp</artifactId>-->
+<!--            <version>4.12.0</version>-->
+<!--        </dependency>-->
 
         <!-- 阿里云 OCR SDK -->
         <dependency>
@@ -181,8 +181,6 @@
             <artifactId>openai-java</artifactId>
             <version>0.31.0</version>
         </dependency>
-
-
     </dependencies>
 
     <build>

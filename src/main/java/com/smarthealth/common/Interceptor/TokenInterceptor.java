@@ -58,6 +58,7 @@ public class TokenInterceptor implements HandlerInterceptor {
 
         // 从token中获取用户ID并设置到线程上下文
         Number userId = (Number)JwtUtils.getClaim(token, "userid");
+        log.info("从token中获取的用户ID为: {}", userId);
         BaseContext.setCurrentId(userId.longValue());
 
         // 如果 token 有效，继续执行请求
@@ -65,10 +66,10 @@ public class TokenInterceptor implements HandlerInterceptor {
     }
 
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        // 清除线程上下文中的用户ID，防止内存泄漏
-        BaseContext.removeCurrentId();
-    }
+//    @Override
+//    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+//        // 清除线程上下文中的用户ID，防止内存泄漏
+//        BaseContext.removeCurrentId();
+//    }
 
 }

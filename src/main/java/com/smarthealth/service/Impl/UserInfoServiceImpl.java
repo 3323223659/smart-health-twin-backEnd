@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import com.smarthealth.common.context.BaseContext;
+import com.smarthealth.common.result.Result;
+import com.smarthealth.domain.DTO.UserQueryDTO;
 import com.smarthealth.domain.Entity.UserInfo;
 import com.smarthealth.domain.VO.CategoryByAgeVO;
 import com.smarthealth.domain.VO.GenderVO;
@@ -19,6 +22,7 @@ import java.util.StringJoiner;
 
 @Service
 public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> implements UserInfoService {
+
 
     //统计男性、女性的人数
     public GenderVO getGenderNum() {
@@ -66,8 +70,6 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
                 .numberList(strings[1])
                 .build();
     }
-
-
 
 
     /**
