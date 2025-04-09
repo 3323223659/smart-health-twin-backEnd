@@ -27,8 +27,7 @@ import java.io.InputStream;
 public class ChatController {
 
     private final ChatService chatService;
-
-    //聊天
+    //普通chat
     @PostMapping
     public Result chat(@RequestBody ChatDTO chatDTO) {
         String id = BaseContext.getCurrentId().toString();
@@ -42,6 +41,7 @@ public class ChatController {
     }
 
 
+    //流式chat
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public ResponseEntity<InputStreamResource> chatStream(@RequestBody ChatDTO chatDTO) {
         String userId = BaseContext.getCurrentId().toString();
@@ -70,7 +70,7 @@ public class ChatController {
     }
 
 
-    //清楚会话记录
+    //清除会话记录
     @PostMapping("/clear")
     public Result clearHistory() {
         String userid = BaseContext.getCurrentId().toString();
@@ -78,5 +78,6 @@ public class ChatController {
         chatService.clearHistory(userid);
         return Result.ok();
     }
+
 
 }

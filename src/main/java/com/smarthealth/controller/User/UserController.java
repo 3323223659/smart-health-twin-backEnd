@@ -82,9 +82,9 @@ public class UserController {
         UserInfo one = userInfoService.getOne(new LambdaQueryWrapper<UserInfo>().eq(UserInfo::getUserId, userId).eq(UserInfo::getIsDeleted, 0));
         if(one != null){
             userInfo.setId(one.getId());
-        }
-        if(userInfoService.saveOrUpdate(userInfo)){
-            return Result.ok();
+            if(userInfoService.saveOrUpdate(userInfo)){
+                return Result.ok();
+            }
         }
         return Result.error("出现异常,设置个人信息失败");
     }

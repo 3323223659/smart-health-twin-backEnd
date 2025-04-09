@@ -1,10 +1,7 @@
 package com.smarthealth.service;
-
-import com.smarthealth.domain.Chat.ChatMessage;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+
 
 /**
  * @author WyH524
@@ -12,11 +9,15 @@ import java.util.List;
  */
 public interface ChatService {
 
+    //清除流式输出
     void clearHistory(String userid);
 
+    //正常输出聊天
     String chat( String userMessage ,String userid) throws Exception;
 
+    //流式输出聊天
     InputStream chatStream(String userId, String userMessage) throws IOException;
 
+    //保存流式输出回复
     void saveStreamResponse(String userId, String aiResponse);
 }

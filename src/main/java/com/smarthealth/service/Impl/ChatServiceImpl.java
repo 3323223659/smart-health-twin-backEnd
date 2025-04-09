@@ -45,15 +45,10 @@ public class ChatServiceImpl implements ChatService {
 
 
     public String chat(String userMessage , String userid) throws IOException {
-
         String historyKey =CHAT_HISTORY_KEY_PREFIX + userid;
-
         // 获取或初始化会话历史
         List<ChatMessage> conversationHistory = getConversationHistory(historyKey);
-        conversationHistory.forEach(chatMessage ->
-                System.out.println("Role: " + chatMessage.getRole() +
-                        ", Content: " + chatMessage.getContent())
-        );
+
         if (conversationHistory.isEmpty()) {
             conversationHistory.add(getSystemMessage()); // 首次会话添加系统消息
             redisTemplate.opsForList().rightPush(historyKey,getSystemMessage());
@@ -84,6 +79,8 @@ public class ChatServiceImpl implements ChatService {
 
         return aiResponse;
     }
+
+
 
 
     // 新增流式输出方法
