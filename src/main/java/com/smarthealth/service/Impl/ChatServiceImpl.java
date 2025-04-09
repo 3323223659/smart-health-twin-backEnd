@@ -133,9 +133,7 @@ public class ChatServiceImpl implements ChatService {
     public String analyzeReport(String reportText,Long userId) throws IOException {
 
         // 定制提示词，要求大模型分析体检报告并返回结构化结果
-        String prompt = "以下是一段未格式化的体检报告文本，请分析并提取关键信息，返回结构化的 JSON 格式结果，" +
-                "包括主要指标（如血压、血糖等）、异常项及建议，保持回答精炼，200字以内。\n" +
-                "体检报告文本：" + reportText;
+        String prompt = "以下是一段未格式化的体检报告文本，请分析其关键信息，异常项及建议，保持回答精炼，200字以内。体检报告文本：" + reportText;
 
         ChatMessage userMsg = new ChatMessage();
         userMsg.setRole("user");
