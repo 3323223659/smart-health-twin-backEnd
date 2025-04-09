@@ -2,6 +2,7 @@ package com.smarthealth.common.Interceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smarthealth.common.Utils.JwtUtils;
+import com.smarthealth.common.constant.CommonConstants;
 import com.smarthealth.common.context.BaseContext;
 import com.smarthealth.common.result.Result;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,28 +32,43 @@ public class TokenInterceptor implements HandlerInterceptor {
         log.info("拦截器触发");
         // 获取请求头中的 Authorization 信息
         String token = request.getHeader("Authorization");
-        System.out.println(token);
+        log.debug("请求头中的 Authorization 信息为: {}", token);
+
+
+        // 设置响应内容类型为JSON
+        response.setContentType("application/json;charset=utf-8");
 
         // 检查 token 是否存在
         if (token == null) {
             log.warn("请求未携带有效的 Token,拦截！");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized: Token is missing");
+            Result result = Result.error(CommonConstants.ResultCode.UN_AUTHORIZED.CODE,CommonConstants.ResultCode.UN_AUTHORIZED.MESSAGE);
+            response.setStatus(CommonConstants.ResultCode.UN_AUTHORIZED.CODE);
+            response.getWriter().write(objectMapper.writeValueAsString(result));
             return false;
         }
 
         // 验证 token 是否有效
         if (!JwtUtils.validateToken(token)) {
             log.warn("请求携带的 Token 无效或已过期,拦截！");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized: Token is invalid or expired");
+            Result result = Result.error(CommonConstants.ResultCode.UN_AUTHORIZED.CODE,CommonConstants.ResultCode.UN_AUTHORIZED.MESSAGE);
+            response.setStatus(CommonConstants.ResultCode.UN_AUTHORIZED.CODE);
+            response.getWriter().write(objectMapper.writeValueAsString(result));
             return false;
         }
 
+        // 从token中获取用户ID并设置到线程上下文
         Number userId = (Number)JwtUtils.getClaim(token, "userid");
         BaseContext.setCurrentId(userId.longValue());
 
         // 如果 token 有效，继续执行请求
         return true;
     }
+
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        // 清除线程上下文中的用户ID，防止内存泄漏
+        BaseContext.removeCurrentId();
+    }
+
 }

@@ -23,7 +23,11 @@ public interface CommonConstants {
         interface NO_RESOURCES {
             Integer CODE = 204;
             String MESSAGE = "no resource";
+        }
 
+        interface UN_AUTHORIZED {
+            Integer CODE = 401;
+            String MESSAGE = "unauthorized";
         }
 
         interface FORWARD {
