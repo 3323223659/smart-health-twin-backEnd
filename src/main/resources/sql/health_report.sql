@@ -1,2 +1,0 @@
-insert into smart_health_twin.health_report (id, user_id, report_date, blood_sugar, glucose, blood_pressure, cholesterol, triglycerides, white_blood_cells, hemoglobin, create_time)
-values  (1, 5, '2025-04-06', 5.44, 5.2, '110/70 mmHg', 3.5, 1.1, '9.2/10-9/L', '5.3/10-12/L', '2025-04-06 11:21:33');
