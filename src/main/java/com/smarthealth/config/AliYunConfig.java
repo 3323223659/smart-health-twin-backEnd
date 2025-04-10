@@ -1,6 +1,7 @@
 package com.smarthealth.config;
 import com.aliyun.ocr_api20210707.Client;
 import com.aliyun.teaopenapi.models.Config;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 /**
@@ -10,13 +11,24 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AliYunConfig {
+
+    @Value("${aliyun.ocr.access-key-id}")
+    private String accessKeyId;
+
+    @Value("${aliyun.ocr.access-key-secret}")
+    private String accessKeySecret;
+
+    @Value("${aliyun.ocr.endpoint}")
+    private String endpoint;
+
+
     @Bean
     public Client ocrClient() throws Exception {
         Config config = new Config()
                 // 从环境变量中取出 ACCESS_KEY_ID、ACCESS_KEY_SECRET
-                .setAccessKeyId(System.getenv("OSS_ACCESS_KEY_ID"))
-                .setAccessKeySecret(System.getenv("OSS_ACCESS_KEY_SECRET"));
-        config.endpoint = "ocr-api.cn-hangzhou.aliyuncs.com";
+                .setAccessKeyId(accessKeyId)
+                .setAccessKeySecret(accessKeySecret);
+        config.endpoint = endpoint;
         return new Client(config);
     }
 }

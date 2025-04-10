@@ -25,6 +25,10 @@ aliyun:
     region: "cn-hangzhou"
     access-key-id: ${OSS_ACCESS_KEY_ID}
     access-key-secret: ${OSS_ACCESS_KEY_SECRET}
+  ocr:
+    access-key-id: ${OSS_ACCESS_KEY_ID}
+    access-key-secret: ${OSS_ACCESS_KEY_SECRET}
+    endpoint: "ocr-api.cn-hangzhou.aliyuncs.com"
 
 #开启mybatis-plus的驼峰命名,以及开启mp的日志（输出到控制台）
 mybatis-plus:
