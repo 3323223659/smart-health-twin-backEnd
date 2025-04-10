@@ -1,61 +1,72 @@
 package com.smarthealth.common.Utils;
 
 import com.aliyun.oss.*;
+import com.aliyun.oss.common.auth.CredentialsProvider;
 import com.aliyun.oss.common.auth.CredentialsProviderFactory;
+import com.aliyun.oss.common.auth.DefaultCredentialProvider;
 import com.aliyun.oss.common.auth.EnvironmentVariableCredentialsProvider;
 import com.aliyun.oss.common.comm.SignVersion;
 import com.aliyun.oss.model.PutObjectRequest;
 import com.aliyun.oss.model.PutObjectResult;
+import com.smarthealth.config.AliYunConfig;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.io.InputStream;
 
+@Component
 public class AliOssUtil {
 
-    //这三个是固定的，我们提取到工具类方法之外，改的话也好改
-    //Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
-    private static final String ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com";
-    //填写Bucket名称，例如examplebucket。
-    private static final String BUCKET_NAME = "tlias399";
-    //填写Bucket所在地域。以华东1（杭州）为例，Region填写为cn-hangzhou。
-    private static final String REGIN = "cn-hangzhou";
+    @Value("${aliyun.oss.endpoint}")
+    private String endpoint;
 
+    @Value("${aliyun.oss.bucket-name}")
+    private String bucketName;
+
+    @Value("${aliyun.oss.region}")
+    private String region;
+
+    @Value("${aliyun.oss.access-key-id}")
+    private String accessKeyId;
+
+    @Value("${aliyun.oss.access-key-secret}")
+    private String accessKeySecret;
 
     //将来我们上传成功文件之后，需要返回文件的访问地址，所以返回值String类型
-
                                       // 上传到阿里云的名字     输入流
-    public static String uploadFile(String objectName, InputStream in) throws Exception {
+    public  String uploadFile(String objectName, InputStream in) throws Exception {
 
 
-        // 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
-        EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
 
+//        // 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
+//        EnvironmentVariableCredentialsProvider credentialsProvider = CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
+        // 使用配置中的accessKeyId和accessKeySecret
+        CredentialsProvider credentialsProvider = new DefaultCredentialProvider(accessKeyId, accessKeySecret);
 
-        //这个是你将文件上传到阿里云中的名字，是一个动态的，我们可以当一个参数传进方法里面来
-//        // 填写Object完整路径，完整路径中不能包含Bucket名称，例如exampledir/exampleobject.txt。
-//        String objectName = "001.png";
 
 
         // 创建OSSClient实例。
         ClientBuilderConfiguration clientBuilderConfiguration = new ClientBuilderConfiguration();
         clientBuilderConfiguration.setSignatureVersion(SignVersion.V4);
         OSS ossClient = OSSClientBuilder.create()
-                .endpoint(ENDPOINT)
+                .endpoint(endpoint)
                 .credentialsProvider(credentialsProvider)
                 .clientConfiguration(clientBuilderConfiguration)
-                .region(REGIN)
+                .region(region)
                 .build();
 
         //空字符串，来设置所拼接的url
         String url="";
 
         try {
-            PutObjectRequest putObjectRequest = new PutObjectRequest(BUCKET_NAME, objectName, in);
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, objectName, in);
 
             // 上传文件，将上面创建的PutObjectRequest对象传进去
             PutObjectResult result = ossClient.putObject(putObjectRequest);
 
             //在这里，如果上传成功，这里可以将文件的地址（因为是固定的）这里我们直接拼接，设置到 url 里面，然后再进行返回
-            url="http://"+BUCKET_NAME+"." + ENDPOINT.substring(ENDPOINT.lastIndexOf("/")+1)+"/"+objectName;
+            url="http://"+bucketName+"." + endpoint.substring(endpoint.lastIndexOf("/")+1)+"/"+objectName;
 
 
         } catch (OSSException oe) {

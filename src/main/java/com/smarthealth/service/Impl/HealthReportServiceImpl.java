@@ -11,8 +11,10 @@ import com.smarthealth.common.Utils.OcrProcessor;
 import com.smarthealth.common.result.Result;
 import com.smarthealth.domain.Chat.ChatCompletionRequest;
 import com.smarthealth.domain.Chat.ChatMessage;
+import com.smarthealth.domain.Entity.HealthAdvice;
 import com.smarthealth.domain.Entity.HealthReport;
 import com.smarthealth.mapper.HealthReportMapper;
+import com.smarthealth.service.HealthAdviceService;
 import com.smarthealth.service.HealthReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,9 @@ public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, Hea
     private final Client client;
 
     private final ChatServiceImpl chatService;
+
+    private final HealthAdviceService healthAdviceService;
+
 
     //识别存储体检报告并将建议存到mysql中
     public Result recognize(String file, Long userId) {
@@ -96,6 +101,7 @@ public class HealthReportServiceImpl extends ServiceImpl<HealthReportMapper, Hea
         }
         return Result.error("暂未发现体检报告记录,请录入");
     }
+
 
 
 }

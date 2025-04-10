@@ -6,11 +6,11 @@ import com.smarthealth.common.constant.HttpCodeConstant;
 import com.smarthealth.common.context.BaseContext;
 import com.smarthealth.common.result.Result;
 import com.smarthealth.domain.DTO.UserDTO;
-import com.smarthealth.domain.Entity.HealthReport;
 import com.smarthealth.domain.Entity.User;
 import com.smarthealth.domain.Entity.UserInfo;
-import com.smarthealth.domain.VO.HealthReportVO;
+import com.smarthealth.domain.DTO.HealthReportDTO;
 import com.smarthealth.domain.VO.UserInfoVO;
+import com.smarthealth.service.HealthAdviceService;
 import com.smarthealth.service.HealthReportService;
 import com.smarthealth.service.UserInfoService;
 import com.smarthealth.service.UserService;
@@ -26,6 +26,8 @@ import java.util.UUID;
 @RequestMapping(value = "/sht/user")
 public class UserController {
 
+    @Resource
+    private AliOssUtil aliOss;
 
     @Resource
     private UserService userService;
@@ -35,6 +37,9 @@ public class UserController {
 
     @Resource
     private HealthReportService healthReportService;
+
+    @Resource
+    private HealthAdviceService healthAdviceService;
 
 
     //手机号、密码登录
@@ -117,18 +122,17 @@ public class UserController {
         String originalFilename = file.getOriginalFilename();
 
         //保证文件名市唯一的，防止文件覆盖
-        String filename = UUID.randomUUID().toString() + originalFilename.substring(originalFilename.lastIndexOf("."));
-        String url = AliOssUtil.uploadFile(filename, file.getInputStream());
+        String url = aliOss.uploadFile(UUID.randomUUID().toString() + originalFilename.substring(originalFilename.lastIndexOf(".")), file.getInputStream());
         return Result.ok(url);
     }
 
 
     //识别存储体检报告，并给出建议，然后将建议存到mysql中
     @PostMapping("/healthReportUpload")
-    public Result uploadHealthReport(@RequestBody HealthReportVO healthReportVO){
-        System.out.println(healthReportVO.getFilePath());
+    public Result uploadHealthReport(@RequestBody HealthReportDTO healthReportDTO){
+        System.out.println(healthReportDTO.getFilePath());
         Long userId = BaseContext.getCurrentId();
-        return healthReportService.recognize(healthReportVO.getFilePath(), userId);
+        return healthReportService.recognize(healthReportDTO.getFilePath(), userId);
     }
 
 
@@ -138,5 +142,15 @@ public class UserController {
         Long userId = BaseContext.getCurrentId();
         return healthReportService.getNewReport(userId);
     }
+
+
+    //获取体检报告建议
+    @GetMapping("/healthReport/suggestion")
+    public Result getHealthReportSuggestion(){
+        Long userId = BaseContext.getCurrentId();
+        return healthAdviceService.getHealthReportBodyAdvice(userId);
+    }
+
+
 
 }
