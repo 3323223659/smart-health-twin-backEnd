@@ -6,14 +6,8 @@ import lombok.Data;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +29,9 @@ public class OpenAIClient {
 
     @Value("${aliyun.dashscope.model-name}")
     private String model;
+
+    @Value("${aliyun.dashscope.stream-chat-baseurl}")
+    private String streamChatbaseUrl;
 
     private final OkHttpClient okHttpClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -60,7 +57,6 @@ public class OpenAIClient {
         Map<String, Integer> parameters = new HashMap<>();
         parameters.put("max_tokens", request.getMax_tokens());
         requestMap.put("parameters", parameters);
-
         // 构建请求体
         RequestBody body = RequestBody.create(
                 objectMapper.writeValueAsString(requestMap),
@@ -72,7 +68,6 @@ public class OpenAIClient {
                 .header("Authorization", "Bearer " + apiKey)
                 .post(body)
                 .build();
-
 
         // 发送请求并处理响应
         try (Response response = okHttpClient.newCall(httpRequest).execute()) {
@@ -120,16 +115,14 @@ public class OpenAIClient {
                 MediaType.get("application/json; charset=utf-8"));
 
 
-
         // 使用DashScope流式API的正确URL
         Request httpRequest = new Request.Builder()
-                .url("https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation")
+                .url(streamChatbaseUrl)
                 .header("Authorization", "Bearer " + apiKey)
                 .header("X-DashScope-SSE", "enable") // 启用流式输出
                 .header("Content-Type", "application/json")
                 .post(body)
                 .build();
-
 
         Response response = okHttpClient.newCall(httpRequest).execute();
         if (!response.isSuccessful()) {
