@@ -13,9 +13,15 @@ SpringBoot+SSM+SpringAI+ MyBatisPlus+MySQL+Redis+WebSocke
 
 #### 安装教程
 pull 该项目
+
 找到代码压缩包下的 smart-health-twin-backend\src\main\resources\sql\create.sql，在mysql 中运行sql脚本。 
+
 阿里云上申请oss、ocr、通用文字识别服务得到key-id与key-secret，同时在oss服务中创建一个bucket桶供存储图片。 
+
 smart-health-twin-backend\src\main\resources下的application.yml文件中修改自己的oss、ocr 配置信息。 
+
 申请通义千问大模型api-key，也配置到application.yml文件中。 
+
 启动redis并且确保在6379端口运行redis服务。 
+
 yml 文件中设置自己的mysql配置信息，刷新maven依赖后，并确保8088端口启动服务，因为管理端与小程序端访问的是8080端口。 
