@@ -12,7 +12,7 @@
 SpringBoot+SSM+SpringAI+ MyBatisPlus+MySQL+Redis+WebSocke
 
 #### 安装教程
-pull 该项目
+pull 该项目。
 
 找到代码压缩包下的 smart-health-twin-backend\src\main\resources\sql\create.sql，在mysql 中运行sql脚本。 
 
